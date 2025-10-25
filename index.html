@@ -686,75 +686,38 @@
         // --- Nouvelle Fonctionnalité LLM (Génération d'Image) ---
 
         async function generateSiteImage() {
-            // 1. Préparation de l'UI pour le chargement
             generatedImageContainer.innerHTML = `<div class="flex items-center justify-center text-purple-600 space-x-2"><svg class="animate-spin h-5 w-5 mr-3 text-purple-600" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Génération de l'image en cours...</span></div>`;
             generateImageButton.disabled = true;
 
-            const {
-                activityName, whatIDo, sitePurpose, items, whyChooseMe,
-                color1, color2, color3, siteFeel, preferredStyle,
-                hasLogo, hasPhotos, talkingStyle, selfDescription, dislikes, city
-            } = formData;
-            
-            // Création d'un prompt détaillé pour la génération d'image
-            const prompt = `
-                Crée une image réaliste d'un aperçu de site web pour l'activité "${activityName}".
-                Le site est pour "${whatIDo}".
-                Le but principal du site est de "${sitePurpose}".
-                Les offres principales sont : ${items.filter(i => i.name).map(i => `${i.name} (${i.phrase})`).join(', ')}.
-                La raison de me choisir est : "${whyChooseMe}".
-                Le site doit utiliser les couleurs principales : ${color1}, ${color2} et ${color3}.
-                L'ambiance générale du site doit être : "${siteFeel}".
-                Le style préféré est : "${preferredStyle}".
-                Le client a un logo: ${hasLogo}, et des photos: ${hasPhotos}.
-                Le ton de communication est : "${talkingStyle}".
-                Le client se décrit comme : "${selfDescription}".
-                Il n'aime pas : "${dislikes}".
-                Le site doit avoir un design moderne et professionnel, reflétant ces caractéristiques.
-                Fais en sorte que ce soit une vue d'écran d'ordinateur ou de téléphone pour simuler un aperçu.
-            `;
-
-            // Corps de la requête pour l'API de génération d'image
-            // NOTE: L'API de génération d'images via Gemini nécessite un service backend ou une configuration spécifique
-            // pour les modèles de génération d'images (comme Imagen, DALL-E, etc. qui peuvent être intégrés via Gemini).
-            // L'URL 'imageApiUrl' est un placeholder. Pour un vrai cas d'usage, il faudrait utiliser
-            // l'API d'un service Text-to-Image (ex: DALL-E 3, Midjourney, ou un service intégré à Gemini)
-            // et adapter le payload en conséquence.
-
             try {
-                // Simuler une requête d'image avec un placeholder
-                // Dans un vrai scénario, vous feriez un POST à une API de génération d'image
-                // et extrairiez l'URL de l'image générée.
+                const response = await fetch('/api/generate-image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ formData })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
                 
-                // Exemple de prompt pour le *modèle d'image* de Gemini s'il était directement accessible
-                const imageGenerationPayload = {
-                    contents: [
-                        { parts: [{ text: prompt }] },
-                    ],
-                    // Ici, vous spécifieriez d'autres paramètres comme la taille de l'image, le style, etc.
-                    // selon l'API de génération d'images que vous utilisez.
-                };
-
-                // Pour l'instant, je vais simuler une URL d'image générée aléatoirement
-                // Remplacez cela par un VRAI appel API si vous avez un backend.
-                // const response = await exponentialBackoffFetch(imageApiUrl, {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify(imageGenerationPayload)
-                // });
-                // const result = await response.json();
-                // const imageUrl = result.candidates?.[0]?.content?.parts?.[0]?.imageData.url || "placeholder_image_url.jpg";
-
-                const imageUrl = `https://via.placeholder.com/800x600?text=Apercu+de+Site+Web+pour+${encodeURIComponent(activityName.substring(0,20))}&bg=${color1.substring(1)}&fg=${color3.substring(1)}`;
-
-                // 3. Affichage de l'image
-                generatedImageContainer.innerHTML = `<img id="generated-site-image" src="${imageUrl}" alt="Aperçu du site web généré par l'IA" class="w-full h-auto object-cover rounded-lg">`;
+                if (result.success && result.imageUrl) {
+                    generatedImageContainer.innerHTML = `<img id="generated-site-image" src="${result.imageUrl}" alt="Aperçu du site web généré par l'IA" class="w-full h-auto object-cover rounded-lg shadow-xl">`;
+                    
+                    if (result.fallback) {
+                        generatedImageContainer.innerHTML += `<p class="text-sm text-gray-500 mt-2 text-center">Note: Image placeholder utilisée. Configurez GEMINI_API_KEY pour la génération IA.</p>`;
+                    }
+                } else {
+                    throw new Error(result.error || 'Aucune image générée');
+                }
 
             } catch (error) {
                 console.error("Erreur lors de la génération de l'image du site:", error);
-                generatedImageContainer.innerHTML = `<p class="text-red-600">❌ Oups ! Impossible de générer l'image. Vérifiez votre connexion ou réessayez. (Erreur technique: ${error.message})</p>`;
+                generatedImageContainer.innerHTML = `<p class="text-red-600">❌ Oups ! Impossible de générer l'image. Vérifiez votre connexion ou réessayez. (Erreur: ${error.message})</p>`;
             } finally {
-                // 4. Restaurer le bouton
                 generateImageButton.disabled = false;
             }
         }
