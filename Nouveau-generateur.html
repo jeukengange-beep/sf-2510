@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Aperçu de Site Web (IA)</title>
+    <!-- Chargement de Tailwind CSS pour un style moderne et responsive --><script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc; /* Arrière-plan très clair */
+        }
+        .step-container {
+            transition: all 0.3s ease-in-out;
+        }
+        /* Style général des cartes et des boutons */
+        .card {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .btn-primary {
+            transition: background-color 0.15s ease-in-out, transform 0.1s ease-in-out;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+        }
+        /* Styles spécifiques pour le preview */
+        #preview-site-mockup {
+            min-height: 80vh;
+            border: 8px solid #333;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: none; /* Caché par défaut */
+            margin-top: 2rem;
+        }
+        .color-selector-container {
+            display: inline-block;
+            position: relative;
+        }
+        .color-selector-label {
+            display: block;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid #fff;
+            box-shadow: 0 0 0 1px #ccc, 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+        .color-input {
+            width: 0;
+            height: 0;
+            visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        /* Style pour l'image générée */
+        #generated-image-container {
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fff;
+            border-radius: 0.5rem;
+            border: 1px dashed #e0e0e0;
+            margin-top: 1.5rem;
+            overflow: hidden;
+        }
+        #generated-site-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.25rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-2">Construis l'Aperçu de Ton Futur Site</h1>
+            <p class="text-lg text-gray-600">Réponds simplement aux questions pour voir à quoi il pourrait ressembler.</p>
+        </header>
+
+        <!-- Indicateur de Progression --><div id="progress-bar" class="w-full bg-gray-200 rounded-full h-2.5 mb-8">
+            <div id="progress-indicator" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%;"></div>
+        </div>
+
+        <!-- Formulaire Multi-Étapes --><div id="form-steps" class="card bg-white p-6 sm:p-10 rounded-xl shadow-lg">
+            <!-- Les étapes seront insérées ici par JS --></div>
+
+        <!-- Section du Résultat (Aperçu) --><div id="result-section" class="hidden mt-12 text-center">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Étape 6 : Le Résultat</h2>
+            <p class="text-xl text-indigo-600 mb-8 font-semibold">Voici l'aperçu de ton futur site web !</p>
+
+            <!-- Section Gemini (Génération d'Image) --><div id="image-generation-section" class="mb-10 p-6 bg-purple-50 rounded-xl border border-purple-200">
+                <h3 class="text-2xl font-bold text-purple-700 mb-4 flex items-center justify-center">
+                    🖼️ Aperçu Visuel Réaliste (Propulsé par Gemini AI)
+                </h3>
+                <div id="generated-image-container" class="mb-4 text-left p-4 bg-white rounded-lg border border-gray-200 min-h-24 flex items-center justify-center text-gray-500">
+                    Clique sur le bouton pour générer une image réaliste de l'aperçu de ton site !
+                </div>
+                <button id="generate-image-button" class="inline-flex items-center btn-primary bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-full shadow-lg text-md transition duration-200">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                    Générer l'Image du Site
+                </button>
+            </div>
+
+
+            <!-- Maquette de l'aperçu du site (HTML/CSS Simulé) --><div id="preview-site-mockup" class="w-full mx-auto bg-white transition-all duration-500 transform scale-100 hidden">
+                <div id="mockup-content" class="h-full w-full">
+                    <!-- Contenu généré par JS --></div>
+            </div>
+
+            <!-- Message et Bouton WhatsApp --><div class="mt-10 p-6 bg-green-50 rounded-xl border border-green-200">
+                <p class="text-xl font-medium text-gray-700 mb-3">Ceci est un aperçu de ton futur site.</p>
+                <p class="text-2xl font-extrabold text-green-700 mb-6">Si tu aimes ce que tu vois, clique ici pour le faire exister dès 10 000 F.</p>
+                <a id="whatsapp-link" href="#" target="_blank" class="inline-flex items-center justify-center btn-primary bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full shadow-lg text-lg">
+                    <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2C7.38 2 3.5 5.8 3.5 10.51c0 1.54.4 3.06 1.16 4.41L4.05 20l5.25-1.37c1.24.68 2.65 1.05 4.07 1.05 4.66 0 8.5-3.8 8.5-8.5S16.7 2 12.04 2zM17 15.63l-.22-.35c-.4-.6-1.44-1.07-2.95-1.87-.22-.11-.47-.19-.47-.36 0-.2.08-.34.18-.47.16-.24.34-.48.5-.66.12-.13.18-.28.18-.43 0-.15-.06-.3-.18-.43-.16-.16-1.55-1.92-1.74-2.12-.1-.13-.24-.19-.4-.19-.08 0-.2.02-.32.02-.27 0-.58.07-.86.13-.24.05-.5.06-.75.06s-.47-.03-.7-.06c-.28-.06-.57-.12-.85-.12-.4 0-.85.14-1.15.42-.32.3-.57.72-.66 1.15-.08.43-.07.86-.07 1.34 0 .4.04.8.12 1.15.08.34.25.66.47.88.22.22.47.38.7.47.3.12.63.18.98.18 1.08 0 1.98-.38 2.4-1.17l.2-.35c.16-.27.42-.56.6-.72.08-.08.2-.13.34-.13.14 0 .27.05.34.13.08.08.12.2.12.35 0 .15-.04.27-.12.4-.4.6-.9.98-1.44 1.34-.6.4-.7.42-1.08.42h-.08c-.2 0-.42-.04-.63-.07-.37-.06-.74-.08-1.12-.08-1.07 0-1.93.38-2.43 1.15-.4.6-.5 1.35-.5 2.1 0 .7.12 1.4.38 2.05.3.75.7 1.43 1.2 2.05.7.9 1.5 1.6 2.4 2.1.8.44 1.8.68 2.8.68 1.63 0 3.1-.48 4.34-1.3l5.25 1.37-1.32-5.18c.74-1.3 1.12-2.7 1.12-4.14C20.54 5.8 16.66 2 12.04 2zM11.66 17.52c-.4 0-.7-.04-.96-.13-.26-.08-.5-.22-.72-.4l-.07-.07c-.43-.43-.66-.97-.66-1.6 0-.64.23-1.18.66-1.6l.07-.07c.43-.43 1.02-.66 1.76-.66.75 0 1.34.23 1.76.66l.07-.07c.43.43.66.97.66 1.6 0 .64-.23 1.18-.66 1.6l-.07-.07c-.43.43-.98.66-1.76.66z"></path></svg>
+                    Discuter sur WhatsApp
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Gemini API Utilities ---
+        // ATTENTION: Remplacez cette URL par l'endpoint réel de votre service de génération d'images via Gemini.
+        // Ceci est une URL de placeholder car Gemini Image n'est pas directement accessible via l'API publique standard de cette manière.
+        // Si vous utilisez un backend pour générer des images via l'API, cette URL pointera vers votre endpoint backend.
+        // Pour cet exemple, je simule une URL d'API qui renverrait une image.
+        const apiKey = ""; // La clé API sera fournie par l'environnement
+        const textApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        // Placeholder pour l'API de génération d'images (à remplacer par votre propre service si vous utilisez une API comme DALL-E ou Midjourney)
+        const imageApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`; // Exemple pour un modèle Vision, il faudrait un service d'image-to-image ou text-to-image
+
+        /**
+         * Effectue un fetch avec une stratégie d'attente exponentielle pour gérer les erreurs.
+         */
+        async function exponentialBackoffFetch(url, options, maxRetries = 3) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.status !== 429 && response.ok) {
+                        return response;
+                    }
+                    if (response.status === 429 || !response.ok) {
+                        throw new Error(`Erreur HTTP: ${response.status}`);
+                    }
+                    return response;
+                } catch (error) {
+                    if (i === maxRetries - 1) {
+                        console.error("Échec de la requête après plusieurs tentatives:", error);
+                        throw new Error("Impossible de se connecter au service de l'IA.");
+                    }
+                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+        // --- Fin des Gemini API Utilities ---
+
+        // Configuration de base
+        const TOTAL_STEPS = 5;
+        let currentStep = 1;
+
+        // État de l'application pour stocker les réponses
+        const formData = {
+            // Step 1
+            activityName: '',
+            whatIDo: '',
+            sitePurpose: 'Vendre', // Default
+            otherPurpose: '',
+            // Step 2
+            items: [{ name: '', phrase: '', price: '' }], // 1 to 5 items
+            whyChooseMe: '',
+            // Step 3
+            hasLogo: 'Non',
+            hasPhotos: 'Non',
+            color1: '#4A4A4A', // Sombre/Primaire
+            color2: '#D1D5DB', // Arrière-plan/Secondaire
+            color3: '#F9FAFB', // Accent/Texte Clair
+            siteFeel: 'Simple et clair', // Default
+            // Step 4
+            whatsappNumber: '',
+            otherContact: '',
+            city: '',
+            // Step 5
+            desiredFeeling: ['confiance', 'joie', 'curiosité'],
+            talkingStyle: 'Chaleureux et amical', // Default
+            selfDescription: '',
+            dislikes: '',
+            preferredStyle: 'Un peu rempli mais bien rangé', // Default
+        };
+
+        // Références DOM
+        const formStepsElement = document.getElementById('form-steps');
+        const progressBarIndicator = document.getElementById('progress-indicator');
+        const resultSection = document.getElementById('result-section');
+        const previewMockup = document.getElementById('preview-site-mockup');
+        const mockupContent = document.getElementById('mockup-content');
+        const whatsappLink = document.getElementById('whatsapp-link');
+        const generateImageButton = document.getElementById('generate-image-button'); // Nouveau bouton
+        const generatedImageContainer = document.getElementById('generated-image-container'); // Nouveau conteneur
+
+        // --- Fonctions de mise à jour de l'UI et de navigation ---
+
+        /** Met à jour la barre de progression. */
+        function updateProgressBar() {
+            const percentage = (currentStep / TOTAL_STEPS) * 100;
+            progressBarIndicator.style.width = `${percentage}%`;
+        }
+
+        /** Gère la navigation entre les étapes. */
+        function navigateToStep(step) {
+            // Validation simple avant de passer à l'étape suivante
+            if (step > currentStep && !validateCurrentStep()) {
+                return;
+            }
+
+            if (step > TOTAL_STEPS) {
+                showResult();
+                return;
+            }
+
+            currentStep = step;
+            updateProgressBar();
+            renderStep();
+        }
+
+        /**
+         * Valide les champs requis de l'étape courante.
+         * CORRECTION DU BUG: Séparation de la validation des inputs texte et des groupes radio/checkbox.
+         */
+        function validateCurrentStep() {
+            let isValid = true;
+            const stepElement = document.querySelector(`#step-${currentStep}`);
+            if (!stepElement) return true;
+
+            // 1. Validation des champs de texte et textarea (ceux qui ont une valeur)
+            // Sélectionne uniquement les INPUT de type text/tel et les TEXTAREA avec data-required="true"
+            const requiredFields = stepElement.querySelectorAll('input[type="text"][data-required="true"], input[type="tel"][data-required="true"], textarea[data-required="true"]');
+            
+            requiredFields.forEach(input => {
+                input.classList.remove('border-red-500');
+
+                // Vérification robuste du contenu
+                const value = input.value;
+                if (value === undefined || value === null || !String(value).trim()) {
+                    isValid = false;
+                    input.classList.add('border-red-500');
+                }
+            });
+
+            // 2. Validation des groupes Radio/Checkbox (ceux définis par un conteneur avec data-name)
+            // Sélectionne les DIV qui agissent comme conteneurs requis pour les groupes
+            const requiredContainers = stepElement.querySelectorAll('div[data-required="true"][data-name]');
+            
+            requiredContainers.forEach(container => {
+                const name = container.dataset.name;
+                container.classList.remove('border-red-500', 'border-2'); // Réinitialiser le style
+
+                // Vérifie si au moins un élément du groupe est coché (radio ou checkbox)
+                if (!container.querySelector(`input[name="${name}"]:checked`)) {
+                    isValid = false;
+                    container.classList.add('border-red-500', 'border-2'); // Appliquer le style d'erreur au conteneur
+                }
+            });
+
+
+            // 3. Validation spécifique pour l'étape 2 (au moins un produit principal rempli)
+            if (currentStep === 2) {
+                 const firstItem = formData.items[0];
+                 const firstItemNameInput = stepElement.querySelector('#item-0-name');
+                 const firstItemPhraseInput = stepElement.querySelector('#item-0-phrase');
+                 
+                 // S'assurer que les éléments DOM existent avant d'essayer de modifier les classes
+                 if (firstItemNameInput) firstItemNameInput.classList.remove('border-red-500');
+                 if (firstItemPhraseInput) firstItemPhraseInput.classList.remove('border-red-500');
+
+                 let isFirstItemValid = firstItem && String(firstItem.name).trim() && String(firstItem.phrase).trim();
+
+                 if (!isFirstItemValid) {
+                    isValid = false;
+                    firstItemNameInput?.classList.add('border-red-500');
+                    firstItemPhraseInput?.classList.add('border-red-500');
+                 }
+            }
+
+
+            if (!isValid) {
+                showCustomMessage('Attention', 'Veuillez remplir tous les champs obligatoires avant de continuer.');
+            }
+
+            return isValid;
+        }
+
+        /** Affiche un message modal personnalisé (pour remplacer alert). */
+        function showCustomMessage(title, message) {
+            let modal = document.getElementById('custom-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'custom-modal';
+                modal.className = 'fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0';
+                modal.innerHTML = `
+                    <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full transform translate-y-4 transition-transform duration-300">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4" id="modal-title"></h3>
+                        <p class="text-gray-700 mb-6" id="modal-message"></p>
+                        <button onclick="hideCustomMessage()" class="btn-primary bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg float-right">
+                            Compris
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            modal.classList.remove('hidden', 'opacity-0');
+            modal.classList.add('opacity-100');
+        }
+
+        /** Cache le message modal. */
+        function hideCustomMessage() {
+            const modal = document.getElementById('custom-modal');
+            if (modal) {
+                modal.classList.remove('opacity-100');
+                modal.classList.add('opacity-0');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+
+        // --- Gestion des Données et Rendu ---
+
+        /** Gère la mise à jour de l'état pour les champs standards. */
+        function handleInput(event, field) {
+            const { value, type, checked } = event.target;
+
+            if (type === 'radio') {
+                formData[field] = value;
+            } else if (type === 'checkbox' && field === 'desiredFeeling') {
+                const maxSelections = 3;
+                let currentSelections = formData.desiredFeeling;
+
+                if (checked) {
+                    if (currentSelections.length < maxSelections) {
+                        currentSelections.push(value);
+                    } else {
+                        event.target.checked = false; // Empêcher la sélection
+                        showCustomMessage('Limite Atteinte', `Veuillez choisir un maximum de ${maxSelections} mots.`);
+                    }
+                } else {
+                    formData.desiredFeeling = currentSelections.filter(item => item !== value);
+                }
+            } else {
+                formData[field] = value;
+            }
+            // Re-render si c'est l'objectif du site pour afficher/cacher le champ 'Autre'
+            if (field === 'sitePurpose' && currentStep === 1) {
+                renderStep();
+            }
+            // Re-render pour les couleurs pour mettre à jour l'aperçu de la couleur
+            if (['color1', 'color2', 'color3'].includes(field) && currentStep === 3) {
+                 renderStep();
+            }
+        }
+
+        /** Gère la mise à jour des items de l'étape 2. */
+        function handleItemInput(event, index, field) {
+            formData.items[index][field] = event.target.value;
+        }
+
+        /** Attache les écouteurs d'événements après le rendu. */
+        function attachEventListeners() {
+            // Écouteurs des boutons de navigation (Précédent/Continuer)
+            document.querySelectorAll('[data-action="navigate"]').forEach(button => {
+                button.onclick = () => {
+                    const step = parseInt(button.dataset.step);
+                    navigateToStep(step);
+                };
+            });
+
+            // Écouteurs pour les items (Ajouter/Retirer) - Étape 2
+            if (currentStep === 2) {
+                const addButton = document.getElementById('add-item-btn');
+                const removeButton = document.getElementById('remove-item-btn');
+                if (addButton) addButton.onclick = addItem;
+                if (removeButton) removeButton.onclick = removeItem;
+            }
+
+            // Écouteur pour la génération d'image
+            if (currentStep === TOTAL_STEPS + 1) {
+                generateImageButton.onclick = generateSiteImage;
+            }
+        }
+
+        /** Génère le contenu HTML de l'étape courante. */
+        function renderStep() {
+            let content = '';
+            let stepTitle = '';
+
+            // Cache toutes les sections
+            formStepsElement.innerHTML = '';
+            formStepsElement.classList.remove('hidden');
+            resultSection.classList.add('hidden');
+            previewMockup.classList.add('hidden');
+
+            switch (currentStep) {
+                case 1:
+                    stepTitle = 'Étape 1 : Parle un peu de toi';
+                    content = `
+                        <div id="step-1">
+                            <h3 class="text-xl font-semibold text-gray-700 mb-6">Ton identité et ton but</h3>
+
+                            <div class="mb-5">
+                                <label for="activityName" class="block text-sm font-medium text-gray-700 mb-1">Ton nom ou le nom de ton activité (ex. : Maison Lysa)</label>
+                                <input type="text" id="activityName" data-required="true" value="${formData.activityName}" oninput="handleInput(event, 'activityName')" placeholder="Ex: Choco Délices" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+
+                            <div class="mb-5">
+                                <label for="whatIDo" class="block text-sm font-medium text-gray-700 mb-1">Ce que tu fais (en une seule phrase simple)</label>
+                                <input type="text" id="whatIDo" data-required="true" value="${formData.whatIDo}" oninput="handleInput(event, 'whatIDo')" placeholder="Ex: Je vends des jus naturels et des gâteaux sur mesure" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+
+                            <div class="mb-5" data-required="true" data-name="sitePurpose">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Pourquoi tu veux ton site ?</label>
+                                ${['Vendre', 'Que les gens me contactent', 'Montrer mon travail', 'Autre (à préciser)'].map(purpose => `
+                                    <div class="flex items-center mb-2">
+                                        <input id="purpose-${purpose.split(' ')[0]}" type="radio" name="sitePurpose" value="${purpose}" ${formData.sitePurpose === purpose ? 'checked' : ''} onchange="handleInput(event, 'sitePurpose')" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                        <label for="purpose-${purpose.split(' ')[0]}" class="ml-3 text-sm font-medium text-gray-700">${purpose}</label>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            ${formData.sitePurpose === 'Autre (à préciser)' ? `
+                                <div class="mb-5">
+                                    <label for="otherPurpose" class="block text-sm font-medium text-gray-700 mb-1">Précise l'autre raison</label>
+                                    <input type="text" id="otherPurpose" data-required="true" value="${formData.otherPurpose || ''}" oninput="handleInput(event, 'otherPurpose')" placeholder="Ex: Gérer les rendez-vous" class="w-full p-3 border border-gray-300 rounded-lg">
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    break;
+                case 2:
+                    stepTitle = 'Étape 2 : Ce que tu proposes';
+                    content = `
+                        <div id="step-2">
+                            <h3 class="text-xl font-semibold text-gray-700 mb-6">Liste tes offres (1 à 5)</h3>
+
+                            <div id="items-list" class="space-y-6 mb-8">
+                                ${formData.items.map((item, index) => `
+                                    <div class="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                        <h4 class="font-medium text-indigo-600 mb-3">Produit/Service ${index + 1}</h4>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-700 mb-1">Nom (ex: Robe wax)</label>
+                                                <input type="text" id="item-${index}-name" data-required="true" value="${item.name}" oninput="handleItemInput(event, ${index}, 'name')" placeholder="Nom de l'offre" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+                                            </div>
+                                            <div class="md:col-span-2">
+                                                <label class="block text-xs font-medium text-gray-700 mb-1">Phrase d'accroche (ex: Pour briller les jours de fête)</label>
+                                                <input type="text" id="item-${index}-phrase" data-required="true" value="${item.phrase}" oninput="handleItemInput(event, ${index}, 'phrase')" placeholder="Description rapide" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-700 mb-1">Prix (Optionnel)</label>
+                                                <input type="text" value="${item.price}" oninput="handleItemInput(event, ${index}, 'price')" placeholder="Ex: 15 000 F" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            <div class="flex justify-end space-x-3 mb-8">
+                                <button id="remove-item-btn" ${formData.items.length === 1 ? 'disabled' : ''} class="text-sm font-medium ${formData.items.length === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-red-600 hover:text-red-800'}">
+                                    - Retirer un produit
+                                </button>
+                                <button id="add-item-btn" ${formData.items.length >= 5 ? 'disabled' : ''} class="text-sm font-medium ${formData.items.length >= 5 ? 'text-gray-400 cursor-not-allowed' : 'text-indigo-600 hover:text-indigo-800'}">
+                                    + Ajouter un produit
+                                </button>
+                            </div>
+
+                            <div class="mb-5">
+                                <label for="whyChooseMe" class="block text-sm font-medium text-gray-700 mb-1">Ajoute une phrase qui donne envie de te choisir</label>
+                                <textarea id="whyChooseMe" data-required="true" oninput="handleInput(event, 'whyChooseMe')" placeholder="Ex: Mes clients reviennent toujours parce qu’ils sentent que tout est fait avec amour." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 resize-none h-20">${formData.whyChooseMe}</textarea>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 3:
+                    stepTitle = 'Étape 3 : Montre un peu ton univers';
+                    content = `
+                        <div id="step-3">
+                            <h3 class="text-xl font-semibold text-gray-700 mb-6">L'aspect visuel</h3>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                <div class="bg-gray-50 p-4 rounded-lg" data-required="true" data-name="hasLogo">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">As-tu un logo ?</label>
+                                    ${['Oui', 'Non'].map(val => `
+                                        <div class="flex items-center mb-2">
+                                            <input id="logo-${val}" type="radio" name="hasLogo" value="${val}" ${formData.hasLogo === val ? 'checked' : ''} onchange="handleInput(event, 'hasLogo')" class="h-4 w-4 text-indigo-600 border-gray-300">
+                                            <label for="logo-${val}" class="ml-3 text-sm font-medium text-gray-700">${val}</label>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg" data-required="true" data-name="hasPhotos">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">As-tu des photos de ton travail ?</label>
+                                    ${['Oui', 'Non'].map(val => `
+                                        <div class="flex items-center mb-2">
+                                            <input id="photos-${val}" type="radio" name="hasPhotos" value="${val}" ${formData.hasPhotos === val ? 'checked' : ''} onchange="handleInput(event, 'hasPhotos')" class="h-4 w-4 text-indigo-600 border-gray-300">
+                                            <label for="photos-${val}" class="ml-3 text-sm font-medium text-gray-700">${val}</label>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="mb-8">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Quelles sont tes trois couleurs préférées ?</label>
+                                <p class="text-xs text-gray-500 mb-3">Elles définiront l'ambiance de ton site.</p>
+                                <div class="flex space-x-6 justify-center">
+                                    ${['color1', 'color2', 'color3'].map((colorField, index) => `
+                                        <div class="text-center">
+                                            <div class="color-selector-container">
+                                                <input type="color" id="${colorField}-input" value="${formData[colorField]}" onchange="handleInput(event, '${colorField}')" class="color-input">
+                                                <label for="${colorField}-input" class="color-selector-label" style="background-color: ${formData[colorField]};" title="Couleur ${index + 1}"></label>
+                                            </div>
+                                            <p class="text-xs text-gray-600 mt-1">Couleur ${index + 1}</p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="mb-5" data-required="true" data-name="siteFeel">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Comment veux-tu que ton site "se sente" ?</label>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    ${['Doux et calme', 'Joyeux et coloré', 'Simple et clair', 'Chic et sérieux', 'Autre (à décrire)'].map(feel => `
+                                        <div class="flex items-center">
+                                            <input id="feel-${feel.split(' ')[0]}" type="radio" name="siteFeel" value="${feel}" ${formData.siteFeel === feel ? 'checked' : ''} onchange="handleInput(event, 'siteFeel')" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                            <label for="feel-${feel.split(' ')[0]}" class="ml-3 text-sm font-medium text-gray-700">${feel}</label>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 4:
+                    stepTitle = 'Étape 4 : Pour te joindre';
+                    content = `
+                        <div id="step-4">
+                            <h3 class="text-xl font-semibold text-gray-700 mb-6">Tes coordonnées</h3>
+
+                            <div class="mb-5">
+                                <label for="whatsappNumber" class="block text-sm font-medium text-gray-700 mb-1">Ton numéro de téléphone ou ton WhatsApp (ex: +2376xxxxxxxx)</label>
+                                <input type="tel" id="whatsappNumber" data-required="true" value="${formData.whatsappNumber}" oninput="handleInput(event, 'whatsappNumber')" placeholder="Numéro avec indicatif pays" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+
+                            <div class="mb-5">
+                                <label for="otherContact" class="block text-sm font-medium text-gray-700 mb-1">Un autre moyen pour te contacter (si tu veux)</label>
+                                <input type="text" id="otherContact" value="${formData.otherContact}" oninput="handleInput(event, 'otherContact')" placeholder="Ex: contact@tonemail.com" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+
+                            <div class="mb-5">
+                                <label for="city" class="block text-sm font-medium text-gray-700 mb-1">Le nom de ta ville</label>
+                                <input type="text" id="city" data-required="true" value="${formData.city}" oninput="handleInput(event, 'city')" placeholder="Ex: Douala" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 5:
+                    stepTitle = 'Étape 5 : Ce qui te ressemble vraiment';
+                    const allFeelings = ['confiance', 'joie', 'curiosité', 'fierté', 'calme', 'dynamisme', 'sérieux', 'luxe'];
+                    content = `
+                        <div id="step-5">
+                            <h3 class="text-xl font-semibold text-gray-700 mb-6">Ta personnalité</h3>
+
+                            <div class="mb-8 p-4 bg-indigo-50 rounded-lg" data-required="true" data-name="desiredFeeling">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Quand quelqu’un visite ton site, tu veux qu’il ressente quoi ? (Choisis trois mots)</label>
+                                <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                                    ${allFeelings.map(feeling => `
+                                        <div class="flex items-center">
+                                            <input id="feeling-${feeling}" type="checkbox" name="desiredFeeling" value="${feeling}" ${formData.desiredFeeling.includes(feeling) ? 'checked' : ''} onchange="handleInput(event, 'desiredFeeling')" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                                            <label for="feeling-${feeling}" class="ml-3 text-sm font-medium text-gray-700 capitalize">${feeling}</label>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="mb-5" data-required="true" data-name="talkingStyle">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Comment tu parles habituellement ?</label>
+                                ${['Posé et calme', 'Direct et franc', 'Chaleureux et amical', 'Inspirant et doux', 'Rigolo et détendu'].map(style => `
+                                    <div class="flex items-center mb-2">
+                                        <input id="style-${style.split(' ')[0]}" type="radio" name="talkingStyle" value="${style}" ${formData.talkingStyle === style ? 'checked' : ''} onchange="handleInput(event, 'talkingStyle')" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                        <label for="style-${style.split(' ')[0]}" class="ml-3 text-sm font-medium text-gray-700">${style}</label>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            <div class="mb-5">
+                                <label for="selfDescription" class="block text-sm font-medium text-gray-700 mb-1">Dis un mot ou une expression qui te décrit bien</label>
+                                <input type="text" id="selfDescription" value="${formData.selfDescription}" oninput="handleInput(event, 'selfDescription')" placeholder="Ex: authentique, la joie d'abord" class="w-full p-3 border border-gray-300 rounded-lg">
+                            </div>
+
+                            <div class="mb-5">
+                                <label for="dislikes" class="block text-sm font-medium text-gray-700 mb-1">Y a-t-il quelque chose que tu n’aimes pas du tout voir ?</label>
+                                <input type="text" id="dislikes" value="${formData.dislikes}" oninput="handleInput(event, 'dislikes')" placeholder="Ex: trop de couleurs, textes longs" class="w-full p-3 border border-gray-300 rounded-lg">
+                            </div>
+
+                            <div class="mb-5" data-required="true" data-name="preferredStyle">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Parmi ces styles, lequel te plaît le plus ?</label>
+                                ${['Clair et vide, tout simple', 'Un peu rempli mais bien rangé', 'Plein d’images et de vie'].map(style => `
+                                    <div class="flex items-center mb-2">
+                                        <input id="density-${style.split(' ')[0]}" type="radio" name="preferredStyle" value="${style}" ${formData.preferredStyle === style ? 'checked' : ''} onchange="handleInput(event, 'preferredStyle')" class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+                                        <label for="density-${style.split(' ')[0]}" class="ml-3 text-sm font-medium text-gray-700">${style}</label>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+
+            // Génération des boutons de navigation
+            const navButtons = `
+                <div class="flex justify-between mt-8 pt-6 border-t border-gray-200">
+                    <button data-action="navigate" data-step="${currentStep - 1}" ${currentStep === 1 ? 'disabled' : ''} class="px-6 py-2 rounded-lg font-semibold ${currentStep === 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}">
+                        &larr; Précédent
+                    </button>
+                    <button data-action="navigate" data-step="${currentStep + 1}" class="btn-primary px-6 py-2 rounded-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700">
+                        ${currentStep < TOTAL_STEPS ? 'Continuer &rarr;' : 'Voir l\'Aperçu &rarr;'}
+                    </button>
+                </div>
+            `;
+
+            formStepsElement.innerHTML = `
+                <h2 class="text-2xl font-bold text-indigo-600 mb-8">${stepTitle}</h2>
+                ${content}
+                ${navButtons}
+            `;
+            
+            // Attacher les écouteurs d'événements après le rendu du DOM
+            attachEventListeners();
+        }
+
+        // --- Logique des items de l'Étape 2 ---
+
+        function addItem() {
+            if (formData.items.length < 5) {
+                formData.items.push({ name: '', phrase: '', price: '' });
+                renderStep();
+            }
+        }
+
+        function removeItem() {
+            if (formData.items.length > 1) {
+                formData.items.pop();
+                renderStep();
+            }
+        }
+
+        // --- Logique du Résultat Final (Étape 6) ---
+
+        function showResult() {
+            formStepsElement.classList.add('hidden');
+            resultSection.classList.remove('hidden');
+            previewMockup.classList.remove('hidden');
+            
+            generateMockup();
+            generateWhatsappLink();
+
+             // Fait défiler jusqu'à la section de résultat
+            document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function generateWhatsappLink() {
+            const phoneNumber = formData.whatsappNumber.replace(/[^0-9+]/g, ''); // Nettoyer le numéro
+            const message = `Bonjour, je viens de générer l'aperçu de mon site pour mon activité ${formData.activityName} (${formData.whatIDo}). J'adore l'aperçu ! Je souhaite créer mon vrai site web dès 10 000 F.`;
+            const encodedMessage = encodeURIComponent(message);
+            // Utiliser un format wa.me/ pour la compatibilité
+            const link = `https://wa.me/${phoneNumber.startsWith('+') ? phoneNumber.substring(1) : phoneNumber}?text=${encodedMessage}`; 
+            whatsappLink.href = link;
+        }
+
+        // --- Nouvelle Fonctionnalité LLM (Génération d'Image) ---
+
+        async function generateSiteImage() {
+            // 1. Préparation de l'UI pour le chargement
+            generatedImageContainer.innerHTML = `<div class="flex items-center justify-center text-purple-600 space-x-2"><svg class="animate-spin h-5 w-5 mr-3 text-purple-600" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Génération de l'image en cours...</span></div>`;
+            generateImageButton.disabled = true;
+
+            const {
+                activityName, whatIDo, sitePurpose, items, whyChooseMe,
+                color1, color2, color3, siteFeel, preferredStyle,
+                hasLogo, hasPhotos, talkingStyle, selfDescription, dislikes, city
+            } = formData;
+            
+            // Création d'un prompt détaillé pour la génération d'image
+            const prompt = `
+                Crée une image réaliste d'un aperçu de site web pour l'activité "${activityName}".
+                Le site est pour "${whatIDo}".
+                Le but principal du site est de "${sitePurpose}".
+                Les offres principales sont : ${items.filter(i => i.name).map(i => `${i.name} (${i.phrase})`).join(', ')}.
+                La raison de me choisir est : "${whyChooseMe}".
+                Le site doit utiliser les couleurs principales : ${color1}, ${color2} et ${color3}.
+                L'ambiance générale du site doit être : "${siteFeel}".
+                Le style préféré est : "${preferredStyle}".
+                Le client a un logo: ${hasLogo}, et des photos: ${hasPhotos}.
+                Le ton de communication est : "${talkingStyle}".
+                Le client se décrit comme : "${selfDescription}".
+                Il n'aime pas : "${dislikes}".
+                Le site doit avoir un design moderne et professionnel, reflétant ces caractéristiques.
+                Fais en sorte que ce soit une vue d'écran d'ordinateur ou de téléphone pour simuler un aperçu.
+            `;
+
+            // Corps de la requête pour l'API de génération d'image
+            // NOTE: L'API de génération d'images via Gemini nécessite un service backend ou une configuration spécifique
+            // pour les modèles de génération d'images (comme Imagen, DALL-E, etc. qui peuvent être intégrés via Gemini).
+            // L'URL 'imageApiUrl' est un placeholder. Pour un vrai cas d'usage, il faudrait utiliser
+            // l'API d'un service Text-to-Image (ex: DALL-E 3, Midjourney, ou un service intégré à Gemini)
+            // et adapter le payload en conséquence.
+
+            try {
+                // Simuler une requête d'image avec un placeholder
+                // Dans un vrai scénario, vous feriez un POST à une API de génération d'image
+                // et extrairiez l'URL de l'image générée.
+                
+                // Exemple de prompt pour le *modèle d'image* de Gemini s'il était directement accessible
+                const imageGenerationPayload = {
+                    contents: [
+                        { parts: [{ text: prompt }] },
+                    ],
+                    // Ici, vous spécifieriez d'autres paramètres comme la taille de l'image, le style, etc.
+                    // selon l'API de génération d'images que vous utilisez.
+                };
+
+                // Pour l'instant, je vais simuler une URL d'image générée aléatoirement
+                // Remplacez cela par un VRAI appel API si vous avez un backend.
+                // const response = await exponentialBackoffFetch(imageApiUrl, {
+                //     method: 'POST',
+                //     headers: { 'Content-Type': 'application/json' },
+                //     body: JSON.stringify(imageGenerationPayload)
+                // });
+                // const result = await response.json();
+                // const imageUrl = result.candidates?.[0]?.content?.parts?.[0]?.imageData.url || "placeholder_image_url.jpg";
+
+                const imageUrl = `https://via.placeholder.com/800x600?text=Apercu+de+Site+Web+pour+${encodeURIComponent(activityName.substring(0,20))}&bg=${color1.substring(1)}&fg=${color3.substring(1)}`;
+
+                // 3. Affichage de l'image
+                generatedImageContainer.innerHTML = `<img id="generated-site-image" src="${imageUrl}" alt="Aperçu du site web généré par l'IA" class="w-full h-auto object-cover rounded-lg">`;
+
+            } catch (error) {
+                console.error("Erreur lors de la génération de l'image du site:", error);
+                generatedImageContainer.innerHTML = `<p class="text-red-600">❌ Oups ! Impossible de générer l'image. Vérifiez votre connexion ou réessayez. (Erreur technique: ${error.message})</p>`;
+            } finally {
+                // 4. Restaurer le bouton
+                generateImageButton.disabled = false;
+            }
+        }
+
+
+        function generateMockup() {
+            const {
+                activityName, whatIDo, sitePurpose, items, whyChooseMe,
+                color1, color2, color3, siteFeel, preferredStyle,
+                hasLogo, hasPhotos, talkingStyle, city
+            } = formData;
+
+            // Définition des couleurs et style basé sur les inputs
+            const primaryColor = color1;
+            const secondaryColor = color2;
+            const accentColor = color3;
+
+            // Classes de densité
+            let densityClasses = '';
+            if (preferredStyle.includes('Clair et vide')) {
+                densityClasses = 'space-y-6 lg:space-y-12 max-w-4xl mx-auto';
+            } else if (preferredStyle.includes('Plein d’images')) {
+                densityClasses = 'space-y-4 lg:space-y-6';
+            } else { // Un peu rempli mais bien rangé (default)
+                densityClasses = 'space-y-8 lg:space-y-16 max-w-6xl mx-auto';
+            }
+
+            // Détermine le style de texte/ton (pour la police et l'épaisseur)
+            let textStyleClasses = 'font-normal';
+            if (siteFeel.includes('Chic et sérieux')) {
+                textStyleClasses = 'font-serif tracking-wide';
+            } else if (siteFeel.includes('Joyeux et coloré')) {
+                textStyleClasses = 'font-bold';
+            } else if (siteFeel.includes('Rigolo et détendu')) {
+                textStyleClasses = 'italic';
+            }
+
+            // --- Construction des Composants du Site ---
+
+            // 1. Navbar
+            const nav = `
+                <nav class="p-4 ${primaryColor ? 'bg-[' + primaryColor + ']' : 'bg-gray-900'} text-white shadow-md">
+                    <div class="flex justify-between items-center max-w-7xl mx-auto">
+                        <span class="text-xl ${hasLogo === 'Oui' ? 'font-serif' : 'font-extrabold'}">${activityName || 'Mon Activité'}</span>
+                        <div class="flex space-x-4 text-sm font-medium">
+                            ${sitePurpose === 'Vendre' ? '<span>Produits</span>' : ''}
+                            <span>À Propos</span>
+                            <span>Contact</span>
+                        </div>
+                    </div>
+                </nav>
+            `;
+
+            // 2. Hero Section
+            const hero = `
+                <header class="text-center p-10 lg:p-20 ${secondaryColor ? 'bg-[' + secondaryColor + ']' : 'bg-gray-100'}">
+                    <h1 class="text-4xl sm:text-5xl font-extrabold mb-4 text-gray-900 ${textStyleClasses}">Bienvenue chez ${activityName || 'Nous'}</h1>
+                    <p class="text-xl text-gray-700 max-w-2xl mx-auto ${textStyleClasses}">${whatIDo || 'Découvrez ce que je fais de mieux !'}</p>
+                    <div class="mt-6 flex justify-center space-x-4">
+                        <button class="px-6 py-3 rounded-full font-bold text-sm text-white ${primaryColor ? 'bg-[' + primaryColor + ']' : 'bg-indigo-600'}">Voir les Offres</button>
+                        <button class="px-6 py-3 rounded-full font-bold text-sm ${primaryColor ? 'text-[' + primaryColor + ']' : 'text-indigo-600'} border border-current">Me Contacter</button>
+                    </div>
+                </header>
+            `;
+
+            // 3. Products/Services Section
+            const products = items.filter(i => i.name).slice(0, 3).map(item => `
+                <div class="p-4 sm:p-6 bg-white rounded-lg shadow-md hover:shadow-xl transition duration-300">
+                    <div class="h-32 bg-gray-200 rounded-md mb-4 flex items-center justify-center text-gray-500 text-xs">
+                        ${hasPhotos === 'Oui' ? '[Image du produit]' : '[Espace Produit/Service]'}
+                    </div>
+                    <h4 class="text-lg font-semibold mb-1 ${primaryColor ? 'text-[' + primaryColor + ']' : 'text-indigo-600'}">${item.name || 'Service X'}</h4>
+                    <p class="text-sm text-gray-600 ${textStyleClasses}">${item.phrase || 'Description de qualité.'}</p>
+                    ${item.price ? `<p class="mt-2 text-md font-bold text-green-700">${item.price}</p>` : ''}
+                </div>
+            `).join('');
+
+            const servicesSection = items.filter(i => i.name).length > 0 ? `
+                <section class="p-8 lg:p-16">
+                    <h2 class="text-3xl font-bold text-center mb-10 ${primaryColor ? 'text-[' + primaryColor + ']' : 'text-gray-800'}">Nos Offres Phares</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        ${products}
+                    </div>
+                </section>
+            ` : '';
+
+            // 4. About/Value Proposition Section
+            const aboutSection = `
+                <section class="p-8 lg:p-16 ${secondaryColor ? 'bg-[' + secondaryColor + ']' : 'bg-gray-100'}">
+                    <div class="max-w-3xl mx-auto text-center">
+                        <h2 class="text-3xl font-bold mb-4 ${primaryColor ? 'text-[' + primaryColor + ']' : 'text-gray-800'}">Pourquoi nous Choisir ?</h2>
+                        <p class="text-lg text-gray-700 italic ${textStyleClasses}">${whyChooseMe || 'Nous avons une expertise unique dans notre domaine.'}</p>
+                        <div class="mt-6 flex justify-center space-x-3 text-sm text-gray-600">
+                            ${formData.desiredFeeling.map(f => `<span class="px-3 py-1 rounded-full border ${primaryColor ? 'border-[' + primaryColor + '] text-[' + primaryColor + ']' : 'border-indigo-600 text-indigo-600'} capitalize">${f}</span>`).join('')}
+                        </div>
+                    </div>
+                </section>
+            `;
+
+            // 5. Contact Section
+            const contactSection = `
+                <section class="p-8 lg:p-16">
+                    <div class="max-w-3xl mx-auto text-center">
+                        <h2 class="text-3xl font-bold mb-4 ${primaryColor ? 'text-[' + primaryColor + ']' : 'text-gray-800'}">Contactez-nous</h2>
+                        <p class="text-lg text-gray-600 mb-6">Nous sommes basés à ${city || 'votre ville'} et nous sommes disponibles pour discuter.</p>
+                        <button class="px-8 py-4 rounded-lg font-bold text-xl text-white ${primaryColor ? 'bg-[' + primaryColor + ']' : 'bg-indigo-600'} hover:opacity-90">
+                            Parler directement avec ${activityName}
+                        </button>
+                    </div>
+                </section>
+            `;
+
+            // 6. Footer
+            const footer = `
+                <footer class="p-4 text-center text-xs text-gray-500 border-t ${secondaryColor ? 'bg-[' + secondaryColor + ']' : 'bg-gray-100'}">
+                    &copy; 2025 ${activityName || 'Mon Activité'}. Fait avec ${formData.selfDescription || 'passion'}.
+                </footer>
+            `;
+
+
+            // Assemblage final
+            mockupContent.innerHTML = `
+                <div class="${densityClasses} h-full overflow-y-auto">
+                    ${nav}
+                    ${hero}
+                    ${servicesSection}
+                    ${aboutSection}
+                    ${contactSection}
+                    ${footer}
+                </div>
+            `;
+            
+            // Applique le style global de la maquette (hauteur)
+            previewMockup.style.height = '80vh';
+        }
+
+        // Initialisation au chargement de la page
+        window.onload = () => {
+            renderStep();
+            generateImageButton.addEventListener('click', generateSiteImage); // Écouteur pour le nouveau bouton
+        };
+    </script>
+    <!-- Modal pour les messages personnalisés (remplace alert) --><div id="custom-modal" class="hidden"></div>
+</body>
+</html>
