@@ -8,6 +8,8 @@ export default async (req, context) => {
     });
   }
 
+  let fallbackUrl = null;
+
   try {
     const body = await req.json();
     const { formData } = body;
@@ -43,34 +45,74 @@ Website details:
 
 Create a complete website mockup showing the full homepage layout including navigation bar, hero section with the business name prominently displayed, product/service cards, about section, and contact area. The design should be modern, professional, and reflect the specified colors and style preferences. Show this as if viewed on a desktop or mobile browser.`;
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${apiKey}`;
+    const normalizeColor = (color, fallback = 'cccccc') => {
+      if (typeof color === 'string' && color.startsWith('#') && color.length === 7) {
+        return color.substring(1);
+      }
+      return fallback;
+    };
+
+    fallbackUrl = `https://via.placeholder.com/1200x675/${normalizeColor(color1)}/${normalizeColor(color3, '333333')}?text=${encodeURIComponent(activityName.substring(0, 30))}`;
+
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`;
 
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
-        instances: [
+        contents: [
           {
-            prompt: prompt,
+            role: 'user',
+            parts: [
+              { text: prompt }
+            ]
           }
-        ],
-        parameters: {
-          sampleCount: 1,
-          aspectRatio: '16:9',
-          safetyFilterLevel: 'block_some',
-          personGeneration: 'allow_adult',
-        }
+        ]
       })
     });
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('Gemini API error:', errorData);
-      
-      const fallbackUrl = `https://via.placeholder.com/1200x675/${color1.substring(1)}/${color3.substring(1)}?text=${encodeURIComponent(activityName.substring(0, 30))}`;
-      
+      const errorPayload = await response.text();
+      throw new Error(`Gemini API error: ${errorPayload}`);
+    }
+
+    const result = await response.json();
+
+    let imageData;
+
+    for (const candidate of result.candidates ?? []) {
+      for (const part of candidate.content?.parts ?? []) {
+        if (part.inlineData?.data) {
+          imageData = part.inlineData.data;
+          break;
+        }
+      }
+      if (imageData) {
+        break;
+      }
+    }
+
+    if (!imageData) {
+      throw new Error('No image data in response');
+    }
+
+    const imageUrl = `data:image/png;base64,${imageData}`;
+
+    return new Response(JSON.stringify({
+      success: true,
+      imageUrl
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+  } catch (error) {
+    console.error('Error generating image:', error);
+
+    if (fallbackUrl) {
       return new Response(JSON.stringify({
         success: true,
         imageUrl: fallbackUrl,
@@ -82,27 +124,6 @@ Create a complete website mockup showing the full homepage layout including navi
       });
     }
 
-    const result = await response.json();
-    
-    const imageData = result.predictions?.[0]?.bytesBase64Encoded;
-    
-    if (imageData) {
-      const imageUrl = `data:image/png;base64,${imageData}`;
-      
-      return new Response(JSON.stringify({
-        success: true,
-        imageUrl: imageUrl
-      }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    } else {
-      throw new Error('No image data in response');
-    }
-
-  } catch (error) {
-    console.error('Error generating image:', error);
-    
     return new Response(JSON.stringify({
       success: false,
       error: error.message,
